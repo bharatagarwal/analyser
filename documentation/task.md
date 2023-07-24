@@ -31,6 +31,24 @@ instead putting each JSON object on a single line.
 
 ### Initial impressions
 
+#### Schema
+
+```JSON
+{
+  "is_anonymous": true, 
+  // boolean
+  "recipe": "DeforumSD", 
+  // string
+  "run_id": "dc158e8add22da7690cd35efe6f1c0ef6a43932868b8958c316a85c95f34e612", 
+  // string, length 64, probably hash
+  "user_id": "e02d31832fdba9afd55b6e2107e097124b7ddc28d6e6eac524f5afb42d19cc6b", 
+  // string, length 64, probably hash
+  "timestamp": "2023-03-05T21:17:17.679325" 
+  // ISO8601 timestamp with local time — no timezone provided
+}
+```
+
+
 #### The timestamps are in random order
 
 ```plain
@@ -149,5 +167,13 @@ $ octosql "select timestamp from inferencelines.json order by timestamp asc limi
 +-----------------------+
 ```
 
+
 # Ingesting the data
-I’ll be using Golang to ingest the data, and produce charts using the [go-echarts](https://github.com/go-echarts/go-echarts) library to create the retention charts.
+## Choosing a data store
+In terms of finding distinct userIDs for each month, to form the basis of retention chart, I’d like to store in something more query-able that plain JSON.
+
+Seeing how this a batch processing job, and the schema is stable across the file, I think ingesting the data into a relational database. 
+
+With the intention of making the process of running the code easy, I’ll store the data in SQLite, and query that to generate datasets for chart-making.
+
+Storing in relational data store makes querying easier, and makes future analyses easier.

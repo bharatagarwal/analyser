@@ -1,40 +1,49 @@
 package main
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 	"os"
-	"time"
 )
 
-type ISO8601Time time.Time
-
-func (*ISO8601Time) UnmarshalJSON() {
-
-}
-
-type record struct {
-	Anonymity bool        `json:"is_anonymous"`
-	Recipe    string      `json:"recipe"`
-	RunID     string      `json:"run_id"`
-	UserID    string      `json:"user_id"`
-	GivenTime ISO8601Time `json:"timestamp"`
+type inference struct {
+	IsAnonymous bool
+	Recipe      string
+	RunID       string `json:"run_id"`
+	UserID      string `json:"user_id"`
+	Timestamp   string // Will convert to timestamp when inserting into SQL
 }
 
 func main() {
-	minimal, _ := os.ReadFile("minimal.json") // returns a byte array
+	// inferences, _ := os.ReadFile("inferences.json")
+	// var siteLog []inference
+	//
+	// err := json.Unmarshal(inferences, &siteLog)
+	// if err != nil {
+	// 	fmt.Printf("error decoding json file: %s\n", err.Error())
+	// 	os.Exit(1)
+	// }
+	//
+	db, err := sql.Open("sqlite3", "records.db")
 
-	var siteLog []record
-
-	err := json.Unmarshal(minimal, &siteLog)
 	if err != nil {
-		fmt.Printf("error decoding json file: %s\n", err.Error())
+		fmt.Printf("error creating database file: %s\n", err.Error())
 		os.Exit(1)
 	}
 
-	for _, log := range siteLog {
-		fmt.Printf("%#v\n", log)
-	}
+	schema := `CREATE TABLE inferences (
+            is_anonymous BOOLEAN,
+            recipe TEXT,
+            run_id TEXT(64) PRIMARY KEY,
+            user_id TEXT(64),
+            timestamp DATETIME
+         )`
 
-	time.Parse()
+	_, err = db.Exec(schema)
+
+	if err != nil {
+		fmt.Printf("error creating database schema: %s\n", err.Error())
+		os.Exit(1)
+	}
 }
