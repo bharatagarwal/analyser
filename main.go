@@ -2,9 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"os"
+
+	_ "github.com/glebarez/go-sqlite"
 )
 
 type inference struct {
@@ -16,16 +18,16 @@ type inference struct {
 }
 
 func main() {
-	// inferences, _ := os.ReadFile("inferences.json")
-	// var siteLog []inference
-	//
-	// err := json.Unmarshal(inferences, &siteLog)
-	// if err != nil {
-	// 	fmt.Printf("error decoding json file: %s\n", err.Error())
-	// 	os.Exit(1)
-	// }
-	//
-	db, err := sql.Open("sqlite3", "records.db")
+	inferences, _ := os.ReadFile("./inferences.json")
+	var siteLog []inference
+
+	err := json.Unmarshal(inferences, &siteLog)
+	if err != nil {
+		fmt.Printf("error decoding json file: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	db, err := sql.Open("sqlite", "./records.db")
 
 	if err != nil {
 		fmt.Printf("error creating database file: %s\n", err.Error())
