@@ -1,6 +1,8 @@
 # Usage notes
 The chart is rendered and available for view in the 'chart.html' file.
 
+![](retention.png)
+
 To build the code,
 
 ```shell
