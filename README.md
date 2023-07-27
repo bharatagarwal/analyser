@@ -82,12 +82,12 @@ WHERE user_id IN (
     FROM inferences 
     WHERE strftime('%Y-%m', timestamp) = '2022-12'
     )
-	AND
+AND
     user_id IN (
-	    SELECT user_id
-		FROM inferences
-		WHERE strftime('%Y-%m', timestamp) = '2023-01'
-	);
+    SELECT user_id
+    FROM inferences
+    WHERE strftime('%Y-%m', timestamp) = '2023-01'
+    );
 ```
 
 I stored the month string and percentage count in separate arrays as opposed to a map since order of keys while iteration in Golang is not reliable, and the chart is order sensitive.
