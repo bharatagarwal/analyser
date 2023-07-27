@@ -32,17 +32,6 @@ func query(db *sql.DB) {
 	// programmatically generate months from dec 2022 to june 2023,
 	// using the date/time libraries in the standard library
 	// monthlyCount := make(map[time.Month]int64)
-	var starting, ending string
-	_ = db.QueryRow("SELECT MIN(timestamp) FROM inferences").Scan(&starting)
-	_ = db.QueryRow("SELECT MAX(timestamp) FROM inferences").Scan(&ending)
-
-	fmt.Printf("%#v\n", starting)
-	fmt.Printf("%#v\n", ending)
-
-	startingGoTime, _ := time.Parse("2006-01-02 15:04:05.999999-07:00",
-		starting)
-	endingGoTime, _ := time.Parse("2006-01-02 15:04:05.999999-07:00",
-		ending)
 
 	d := startingGoTime
 

@@ -23,7 +23,7 @@ The commands are:
 				into a SQLite database by the name of "records.db"
 
 	query       query database for user retention related information
-				and save into a JSON file named "retention_stats.json"
+				and save into a JSON file named "retention_percentages.json"
 
 	chart       chart monthly retention diagram into a file
 				called "retention.png"

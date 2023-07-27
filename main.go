@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/glebarez/go-sqlite"
 	"os"
+	"time"
 )
 
 type Inference struct {
@@ -32,6 +33,10 @@ func main() {
 	if *populateFlag {
 		populate(db)
 	}
+
+	now := time.Now()
+	time.Sleep(1 * time.Second)
+	fmt.Printf("%v\n", time.Now().Sub(now)
 
 	if *queryFlag {
 		query(db)

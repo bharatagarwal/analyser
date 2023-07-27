@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -22,7 +23,17 @@ const FaultyTimestamp = "1970-01-01T00:00:00"
 
 func ingest() {
 	fmt.Println("Ingesting...")
-	benchStart := time.Now()
+	benchmarkStart := time.Now()
+
+	// Checking for existing database; removing if present
+	if _, err := os.Stat("./records.db"); err == nil {
+		fmt.Printf("Database file exists. Deleting to ingest afresh...\n\n")
+		err := os.Remove("./records.db")
+		if err != nil {
+			fmt.Printf("error deleting database file: %s\n", err.Error())
+			os.Exit(1)
+		}
+	}
 
 	// Opening JSON file
 	inferences, err := os.ReadFile("./inferences.json")
@@ -39,7 +50,7 @@ func ingest() {
 
 	if err != nil {
 		fmt.Printf("error decoding json file: %s\n", err.Error())
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	// Creating database
@@ -47,7 +58,7 @@ func ingest() {
 
 	if err != nil {
 		fmt.Printf("error creating database file: %s\n", err.Error())
-		os.Exit(3)
+		os.Exit(1)
 	}
 
 	// Creating table
@@ -64,45 +75,85 @@ func ingest() {
 
 	if err != nil {
 		fmt.Printf("error creating database schema: %s\n", err.Error())
-		os.Exit(4)
+		os.Exit(1)
 	}
 
 	// Preparing insertion template
-	template := `INSERT INTO inferences(
+	const batchSize = 100
+	const fieldsPerRow = 5
+	var placeholders []string
+
+	for i := 0; i < batchSize; i += 1 {
+		placeholders = append(placeholders, "(?, ?, ?, ?, ?)")
+	}
+
+	templateStart := `INSERT INTO inferences(
 		is_anonymous,
 		recipe,
 		run_id,
 		user_id,
 		timestamp
-	) VALUES (?, ?, ?, ?, ?)`
+	) VALUES `
 
+	template := templateStart + strings.Join(placeholders, ",")
 	statement, err := db.Prepare(template)
 
 	if err != nil {
-		fmt.Printf("error preparing insertion statement: %s\n", err.Error())
-		os.Exit(5)
+		fmt.Printf("error preparing batch insertion statement: %s\n", err.Error())
+		os.Exit(1)
 	}
 
-	// Inserting records
-	for _, record := range records {
-		if record.Timestamp == FaultyTimestamp {
+	// Inserting records in batches of 100
+	var batchFields []any
+
+	for i := 0; i < len(records); i += 1 {
+		if records[i].Timestamp == FaultyTimestamp {
 			continue
 		}
 
-		_, err := statement.Exec(
-			record.IsAnonymous,
-			record.Recipe,
-			record.RunID,
-			record.UserID,
-			parseTime(record.Timestamp),
+		batchFields = append(batchFields,
+			records[i].IsAnonymous,
+			records[i].Recipe,
+			records[i].RunID,
+			records[i].UserID,
+			parseTime(records[i].Timestamp),
 		)
 
-		if err != nil {
-			fmt.Printf("error inserting record: %s\n", err.Error())
-			os.Exit(6)
+		if len(batchFields) == batchSize*fieldsPerRow {
+			_, err := statement.Exec(batchFields...)
+			if err != nil {
+				fmt.Printf("error inserting record: %s\n", err.Error())
+				os.Exit(1)
+			}
+
+			batchFields = []any{} // clearing the batch
 		}
 	}
 
-	benchEnd := time.Now()
-	fmt.Printf("%Elapsed: %v\n", benchEnd.Sub(benchStart))
+	// Inserting remaining records
+	if len(batchFields) > 0 {
+		insertRemaining(batchFields, db, templateStart)
+	}
+
+	fmt.Println("Ingestion complete")
+	fmt.Printf("Duration: %v\n",
+		time.Now().Sub(benchmarkStart))
+}
+
+func insertRemaining(fields []any, db *sql.DB, templateStart string) {
+	rawStatement := templateStart + "(?, ?, ?, ?, ?)"
+	statement, err := db.Prepare(rawStatement)
+
+	if err != nil {
+		fmt.Printf("error preparing batch insertion statement: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	for i := 0; i < len(fields); i += 5 {
+		_, err := statement.Exec(fields...)
+		if err != nil {
+			fmt.Printf("error inserting record: %s\n", err.Error())
+			os.Exit(1)
+		}
+	}
 }
