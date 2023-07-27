@@ -60,7 +60,7 @@ func chart() {
 	}
 
 	fmt.Println("Chart generation complete. See chart.html")
-	fmt.Printf("Duration: %v\n",
+	fmt.Printf("Duration: %v\n\n",
 		time.Now().Sub(benchmarkStart))
 }
 

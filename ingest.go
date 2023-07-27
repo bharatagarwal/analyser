@@ -136,7 +136,7 @@ func ingest() {
 	}
 
 	fmt.Println("Ingestion complete. See records.db")
-	fmt.Printf("Duration: %v\n",
+	fmt.Printf("Duration: %v\n\n",
 		time.Now().Sub(benchmarkStart))
 }
 

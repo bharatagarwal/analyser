@@ -60,7 +60,7 @@ func query() {
 	writeToJSON(months, percentages)
 
 	fmt.Println("Querying complete. See retention_percentages.json")
-	fmt.Printf("Duration: %v\n",
+	fmt.Printf("Duration: %v\n\n",
 		time.Now().Sub(benchmarkStart))
 }
 
