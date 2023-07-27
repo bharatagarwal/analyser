@@ -177,3 +177,23 @@ Seeing how this a batch processing job, and the schema is stable across the file
 With the intention of making the process of running the code easy, I’ll store the data in SQLite, and query that to generate datasets for chart-making.
 
 Storing in relational data store makes querying easier, and makes future analyses easier.
+
+Note: “run_id” is not unique, as I encountered when entering the data into SQLite.
+
+```JSON
+{
+	"is_anonymous":false,
+	"recipe":"EmailFaceInpainting#2",
+	"run_id":"7fca2ecd62a553a144bf2ccc6684886a32a534de71741ef936e3dbfcd6a9208e",
+	"user_id":"62ba6228f1d7918283cd7517ab72bd7e5ae02560b6ab7db74b531283f0b776e0",
+	"timestamp":"2022-12-22T05:14:24.610073"
+}
+
+{
+	"is_anonymous":false,
+	"recipe":"SEOSummary",
+	"run_id":"7fca2ecd62a553a144bf2ccc6684886a32a534de71741ef936e3dbfcd6a9208e",
+	"user_id":"62ba6228f1d7918283cd7517ab72bd7e5ae02560b6ab7db74b531283f0b776e0",
+	"timestamp":"2022-12-26T10:55:25.856325"
+}
+```
