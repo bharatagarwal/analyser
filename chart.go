@@ -79,7 +79,7 @@ func monthlyRetention(months []string, users []int64) *charts.Bar {
 	bar.SetGlobalOptions(
 		// charts.WithTooltipOpts(opts.Tooltip{Show: true}),
 		charts.WithLegendOpts(opts.Legend{Show: false, Right: "80px"}),
-		charts.WithTitleOpts(opts.Title{Title: "Monthly users retention chart" +
+		charts.WithTitleOpts(opts.Title{Title: "Monthly user retention chart" +
 			""}),
 	)
 
