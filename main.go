@@ -1,48 +1,33 @@
 package main
 
 import (
-	"database/sql"
-	"flag"
 	"fmt"
-	_ "github.com/glebarez/go-sqlite"
 	"os"
-	"time"
 )
 
-type Inference struct {
-	IsAnonymous bool
-	Recipe      string
-	RunID       string `json:"run_id"`
-	UserID      string `json:"user_id"`
-	Timestamp   string
-}
-
 func main() {
-	var populateFlag = flag.Bool("populate", false, "populate the database")
-	var queryFlag = flag.Bool("query", false, "populate the database")
-	var chartFlag = flag.Bool("chart", false, "populate the database")
+	arguments := os.Args[1:]
 
-	flag.Parse()
-
-	db, err := sql.Open("sqlite", "./records.db")
-	if err != nil {
-		fmt.Printf("error opening database file: %s\n", err.Error())
-		os.Exit(1)
+	if len(arguments) == 0 {
+		introduction()
+		howToUse()
+		return
 	}
 
-	if *populateFlag {
-		populate(db)
-	}
+	command := arguments[0]
 
-	now := time.Now()
-	time.Sleep(1 * time.Second)
-	fmt.Printf("%v\n", time.Now().Sub(now)
-
-	if *queryFlag {
-		query(db)
-	}
-
-	if *chartFlag {
+	if command == "ingest" {
+		ingest()
+	} else if command == "query" {
+		query()
+	} else if command == "chart" {
 		chart()
+	} else if command == "demo" {
+		ingest()
+		query()
+		chart()
+	} else {
+		fmt.Println("Unknown command:", command, "\n")
+		howToUse()
 	}
 }

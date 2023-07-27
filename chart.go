@@ -1,33 +1,67 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"time"
+
 	"github.com/go-echarts/go-echarts/v2/charts"
 	"github.com/go-echarts/go-echarts/v2/components"
 	"github.com/go-echarts/go-echarts/v2/opts"
-	"io"
-	"os"
 )
 
 func chart() {
-	initial := returningUsers[0]
+	fmt.Println("Charting...")
+	benchmarkStart := time.Now()
 
-	for _, users := range returningUsers {
-		percent := users * 100 / initial
-		percentages = append(percentages, percent)
+	// Checking for existing chart file; removing if present
+	if _, err := os.Stat("./chart.html"); err == nil {
+		fmt.Printf("Chart page exists. Deleting to generate afresh...\n\n")
+		err := os.Remove("./chart.html")
+		if err != nil {
+			fmt.Printf("error deleting chart page: %s\n", err.Error())
+			os.Exit(1)
+		}
 	}
 
+	// Opening retention stats
+	file, err := os.Open("retention_percentages.json")
+	if err != nil {
+		fmt.Printf("error opening analysis json file: %s\n", err.Error())
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	// Reading from JSON file
+	var data RetentionData
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&data)
+	if err != nil {
+		fmt.Printf("error decoding analysis json file: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	// Generating chart page
 	page := components.NewPage()
-	page.AddCharts(monthlyRetention(months, percentages))
+	page.AddCharts(monthlyRetention(data.Months, data.Percentages))
 
 	f, err := os.Create("chart.html")
 	if err != nil {
 		panic(err)
 	}
 
+	// Writing to chart file
 	err = page.Render(io.MultiWriter(f))
 	if err != nil {
 		return
 	}
+
+	fmt.Println("Chart generation complete. See chart.html")
+	fmt.Printf("Duration: %v\n",
+		time.Now().Sub(benchmarkStart))
 }
 
 func generateBarItems(values []int64) []opts.BarData {
